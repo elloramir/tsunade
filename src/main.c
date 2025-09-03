@@ -116,6 +116,7 @@ sapp_desc sokol_main(int param_argc, char* param_argv[]) {
     state.argv = param_argv;
 
     return (sapp_desc){
+        .enable_clipboard = true,
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
