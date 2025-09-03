@@ -364,6 +364,9 @@ function core.step()
   local mouse_moved = false
   local mouse = { x = 0, y = 0, dx = 0, dy = 0 }
 
+  -- allways redraw
+  core.redraw = true
+
   for type, a,b,c,d in system.poll_event do
     -- Only process events if focused
     if system.window_has_focus() then
@@ -377,7 +380,6 @@ function core.step()
         local _, res = core.try(core.on_event, type, a, b, c, d)
         did_keymap = res or did_keymap
       end
-      core.redraw = true
     end
   end
   if mouse_moved then

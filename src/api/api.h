@@ -13,8 +13,8 @@ do { \
         fprintf(stderr, "[Lua Error] require('%s'): %s\n", module, lua_tostring(L, -1)); \
         lua_pop(L, 1); \
     } else { \
-        lua_getfield(L, -1, func); /* pega module.func */ \
-        lua_remove(L, -2);          /* remove módulo da stack */ \
+        lua_getfield(L, -1, func); \
+        lua_remove(L, -2); \
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) { \
             fprintf(stderr, "[Lua Error] %s.%s(): %s\n", module, func, lua_tostring(L, -1)); \
             lua_pop(L, 1); \

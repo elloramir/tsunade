@@ -1,4 +1,3 @@
-
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
 #include "renderer.h"
@@ -102,7 +101,8 @@ static void frame(void) {
 }
 
 static void cleanup(void) {
-    // @todo(ellora): Investigate why this event was not trigged from the event queue
+    // @note(ellora): It should be processed by the event
+    // queue, but for some reason, sokol does not process quit.
     LUA_MODULE_CALL(state.L, "core", "quit");
     lua_close(state.L);
 }
