@@ -9,6 +9,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include "api.h"
 
 #ifdef _WIN32
@@ -23,8 +24,18 @@ static struct
     sapp_event event_queue[MAX_EVENTS];
     int queue_head;
     int queue_tail;
+
+    double last_click_time;
+    float last_click_x;
+    float last_click_y;
+    sapp_mousebutton last_click_button;
+    int click_count;
 }
 state;
+
+static double time_now(void) {
+    return (double)clock() / (double)CLOCKS_PER_SEC;
+}
 
 void enqueue_event(const sapp_event* e) {
     int next = (state.queue_tail + 1) % MAX_EVENTS;
@@ -39,6 +50,30 @@ static bool dequeue_event(sapp_event* out) {
     *out = state.event_queue[state.queue_head];
     state.queue_head = (state.queue_head + 1) % MAX_EVENTS;
     return true;
+}
+
+static int get_click_count(const sapp_event* e) {
+    if (e->type != SAPP_EVENTTYPE_MOUSE_DOWN) return 0;
+
+    double now = time_now();
+    double dt = now - state.last_click_time;
+
+    bool same_button = (e->mouse_button == state.last_click_button);
+    bool close_pos = (fabsf(e->mouse_x - state.last_click_x) < 4 &&
+                      fabsf(e->mouse_y - state.last_click_y) < 4);
+
+    if (same_button && close_pos && dt < 0.3) {
+        state.click_count++;
+    } else {
+        state.click_count = 1;
+    }
+
+    state.last_click_time = now;
+    state.last_click_x = e->mouse_x;
+    state.last_click_y = e->mouse_y;
+    state.last_click_button = e->mouse_button;
+
+    return state.click_count;
 }
 
 static const char* button_name(int button) {
@@ -159,14 +194,25 @@ static int f_window_has_focus(lua_State* L) {
     return 1;
 }
 
-static int f_show_confirm_dialog(lua_State* L) {
-    (void)L;
+static int f_show_confirm_dialog(lua_State *L) {
+    const char *title = luaL_checkstring(L, 1);
+    const char *msg = luaL_checkstring(L, 2);
+
+#if _WIN32
+    int id = MessageBox(0, msg, title, MB_YESNO | MB_ICONWARNING);
+    lua_pushboolean(L, id == IDYES);
+#else
+    char command[1024];
+    snprintf(command, sizeof(command), "zenity --question --title=\"%s\" --text=\"%s\" --no-wrap", title, msg);
+    int result = system(command);
+    lua_pushboolean(L, result == 0); // zenity returns 0 for "Yes"
+#endif
+
     return 1;
 }
 
 static int f_get_time(lua_State* L) {
-    double n = (double)clock() / (double)CLOCKS_PER_SEC;
-    lua_pushnumber(L, n);
+    lua_pushnumber(L, time_now());
     return 1;
 }
 
@@ -250,13 +296,15 @@ static int f_poll_event(lua_State* L) {
         lua_pushstring(L, "textinput");
         lua_pushfstring(L, "%c", (char)e.char_code);
         return 2;
-    case SAPP_EVENTTYPE_MOUSE_DOWN:
+    case SAPP_EVENTTYPE_MOUSE_DOWN: {
+        int clicks = get_click_count(&e);
         lua_pushstring(L, "mousepressed");
         lua_pushstring(L, button_name(e.mouse_button));
         lua_pushnumber(L, e.mouse_x);
         lua_pushnumber(L, e.mouse_y);
-        lua_pushnumber(L, 1);
+        lua_pushnumber(L, clicks);
         return 5;
+    }
     case SAPP_EVENTTYPE_MOUSE_UP:
         lua_pushstring(L, "mousereleased");
         lua_pushstring(L, button_name(e.mouse_button));

@@ -70,6 +70,8 @@ static void frame(void) {
 }
 
 static void cleanup(void) {
+    // @todo(ellora): Investigate why this event was not trigged from the event queue
+    (void)luaL_dostring(state.L, "require('core').quit()");
     lua_close(state.L);
 }
 
