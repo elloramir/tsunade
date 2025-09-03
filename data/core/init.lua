@@ -324,6 +324,7 @@ end
 
 function core.on_event(type, ...)
   local did_keymap = false
+
   if type == "textinput" then
     core.root_view:on_text_input(...)
   elseif type == "keypressed" then
@@ -364,8 +365,6 @@ function core.step()
   local mouse_moved = false
   local mouse = { x = 0, y = 0, dx = 0, dy = 0 }
 
-  -- allways redraw
-  core.redraw = true
 
   for type, a,b,c,d in system.poll_event do
     -- Only process events if focused
@@ -380,6 +379,7 @@ function core.step()
         local _, res = core.try(core.on_event, type, a, b, c, d)
         did_keymap = res or did_keymap
       end
+      core.redraw = true
     end
   end
   if mouse_moved then

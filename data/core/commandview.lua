@@ -255,26 +255,28 @@ local function draw_input_area(self)
   
   local x, y, w, h = self:get_input_rect()
   
-  -- Draw input background (retângulo reto)
+  -- Draw input background
   draw_rect_simple(x, y, w, h, style.background2)
   
   -- Draw input border
   local border_color = style.accent
-  renderer.draw_rect(x, y, w, 1, border_color)
-  renderer.draw_rect(x, y + h - 1, w, 1, border_color)
-  renderer.draw_rect(x, y, 1, h, border_color)
-  renderer.draw_rect(x + w - 1, y, 1, h, border_color)
+  renderer.draw_rect(x, y, w, 2, border_color)
+  renderer.draw_rect(x, y + h - 2, w, 2, border_color)
+  renderer.draw_rect(x, y, 2, h, border_color)
+  renderer.draw_rect(x + w - 2, y, 2, h, border_color)
   
-  -- Draw label and input text
+  -- Draw label
   local font = self:get_font()
   local text_y = y + (h - font:get_height()) / 2
   local label_x = x + style.padding.x
-  
-  -- Draw label
   renderer.draw_text(font, self.label, label_x, text_y, style.accent)
   
-  -- Draw input text and cursor
+  -- Clip area para o input
   local input_x = label_x + font:get_width(self.label)
+  local clip_w = x + w - style.padding.x - input_x
+  core.push_clip_rect(input_x, y, clip_w, h)
+  
+  -- Draw input text
   local input_text = self:get_text()
   renderer.draw_text(font, input_text, input_x, text_y, style.text)
   
@@ -283,7 +285,10 @@ local function draw_input_area(self)
     local cursor_x = input_x + font:get_width(input_text)
     renderer.draw_rect(cursor_x, text_y, style.caret_width, font:get_height(), style.caret)
   end
+  
+  core.pop_clip_rect()
 end
+
 
 
 local function draw_suggestions_area(self)
