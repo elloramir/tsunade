@@ -278,30 +278,66 @@ static int f_get_file_info(lua_State* L) {
 static int f_poll_event(lua_State* L) {
     sapp_event e;
     char buf[16];
+
     if (!dequeue_event(&e)) {
         return 0;
     }
+
     switch (e.type) {
+
+    // --- Window / System ---
     case SAPP_EVENTTYPE_QUIT_REQUESTED:
         lua_pushstring(L, "quit");
         return 1;
+
     case SAPP_EVENTTYPE_RESIZED:
         lua_pushstring(L, "resized");
         lua_pushnumber(L, e.framebuffer_width);
         lua_pushnumber(L, e.framebuffer_height);
         return 3;
+
+    case SAPP_EVENTTYPE_FOCUSED:
+        state.has_focus = true;
+        lua_pushstring(L, "focused");
+        return 1;
+
+    case SAPP_EVENTTYPE_UNFOCUSED: {
+        // @todo(ellora): That is not the ideal, but...
+        // Fix stuck modifier keys (alt/ctrl/shift) when losing focus
+        sapp_event fake;
+        memset(&fake, 0, sizeof(fake));
+        fake.type = SAPP_EVENTTYPE_KEY_UP;
+
+        int mods[] = {
+            SAPP_KEYCODE_LEFT_ALT,   SAPP_KEYCODE_RIGHT_ALT,
+            SAPP_KEYCODE_LEFT_CONTROL,  SAPP_KEYCODE_RIGHT_CONTROL,
+            SAPP_KEYCODE_LEFT_SHIFT, SAPP_KEYCODE_RIGHT_SHIFT,
+        };
+
+        for (int i = 0; i < (int)(sizeof(mods)/sizeof(mods[0])); i++) {
+            fake.key_code = mods[i];
+            enqueue_event(&fake);
+        }
+
+        lua_pushstring(L, "unfocused");
+        return 1;
+    }
+
     case SAPP_EVENTTYPE_KEY_DOWN:
         lua_pushstring(L, "keypressed");
         lua_pushstring(L, key_name(buf, e.key_code));
         return 2;
+
     case SAPP_EVENTTYPE_KEY_UP:
         lua_pushstring(L, "keyreleased");
         lua_pushstring(L, key_name(buf, e.key_code));
         return 2;
+
     case SAPP_EVENTTYPE_CHAR:
         lua_pushstring(L, "textinput");
         lua_pushfstring(L, "%c", (char)e.char_code);
         return 2;
+
     case SAPP_EVENTTYPE_MOUSE_DOWN: {
         int clicks = get_click_count(&e);
         lua_pushstring(L, "mousepressed");
@@ -311,12 +347,14 @@ static int f_poll_event(lua_State* L) {
         lua_pushnumber(L, clicks);
         return 5;
     }
+
     case SAPP_EVENTTYPE_MOUSE_UP:
         lua_pushstring(L, "mousereleased");
         lua_pushstring(L, button_name(e.mouse_button));
         lua_pushnumber(L, e.mouse_x);
         lua_pushnumber(L, e.mouse_y);
         return 4;
+
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         lua_pushstring(L, "mousemoved");
         lua_pushnumber(L, e.mouse_x);
@@ -324,18 +362,12 @@ static int f_poll_event(lua_State* L) {
         lua_pushnumber(L, e.mouse_dx);
         lua_pushnumber(L, e.mouse_dy);
         return 5;
+
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
         lua_pushstring(L, "mousewheel");
         lua_pushnumber(L, e.scroll_y);
         return 2;
-    case SAPP_EVENTTYPE_FOCUSED:
-        state.has_focus = true;
-        lua_pushstring(L, "focused");
-        return 1;
-    case SAPP_EVENTTYPE_UNFOCUSED:
-        state.has_focus = false;
-        lua_pushstring(L, "unfocused");
-        return 1;
+
     default:
         return 0;
     }
