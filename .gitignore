@@ -1,3 +1,4 @@
 *.o
 tsunade
 error.txt
+.lite*
