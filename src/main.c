@@ -1,3 +1,4 @@
+
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
 #include "renderer.h"
@@ -8,6 +9,18 @@
 
 #include "api/api.h"
 
+#include <stdio.h>
+#include <string.h>
+#if __linux__ || __APPLE__
+#include <unistd.h>
+#endif
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 static struct
 {
     int argc;
@@ -15,6 +28,23 @@ static struct
     lua_State *L;
 }
 state;
+
+static void get_exe_filename(char *buf, int sz) {
+#if _WIN32
+    int len = GetModuleFileName(NULL, buf, sz - 1);
+    buf[len] = '\0';
+#elif __linux__
+    char path[512];
+    sprintf(path, "/proc/%d/exe", getpid());
+    int len = readlink(path, buf, sz - 1);
+    buf[len] = '\0';
+#elif __APPLE__
+    unsigned size = sz;
+    _NSGetExecutablePath(buf, &size);
+#else
+    strcpy(buf, "./tsunade");
+#endif
+}
 
 static void init(void) {
     ren_init();
@@ -41,7 +71,9 @@ static void init(void) {
     lua_pushnumber(state.L, 1);
     lua_setglobal(state.L, "SCALE");
 
-    lua_pushstring(state.L, "/home/lucas/pedro/tsunade/tsunade");
+    char exe_buffer[1024];
+    get_exe_filename(exe_buffer, sizeof(exe_buffer));
+    lua_pushstring(state.L, exe_buffer);
     lua_setglobal(state.L, "EXEFILE");
 
     // Execute the Lua initialization script.

@@ -7,5 +7,5 @@ require "user.colors.fall"
 config.scale = 1.5
 config.draw_whitespace = true
 
-keymap.add { ["escape"] = "core:quit" }
+keymap.add { ["ctrl+escape"] = "core:quit" }
 
