@@ -13,4 +13,3 @@ transforming the original lite editor into something closer to **nvim + plugins*
 - [ ] Provide **fast access to user settings** through a Lua file for easy modification  
 - [ ] Enable **theme previews**  
 - [ ] Support **scaling with scroll**  
-- [ ] Make the editor more lock-themed on japanese style
