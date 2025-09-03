@@ -1,4 +1,3 @@
-
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
 #include "renderer.h"
@@ -68,7 +67,7 @@ static void init(void) {
     lua_pushstring(state.L, "Windows");
     lua_setglobal(state.L, "PLATFORM");
 
-    lua_pushnumber(state.L, 1.5);
+    lua_pushnumber(state.L, 1);
     lua_setglobal(state.L, "SCALE");
 
     char exe_buffer[1024];

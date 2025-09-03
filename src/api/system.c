@@ -30,6 +30,8 @@ static struct
     float last_click_y;
     sapp_mousebutton last_click_button;
     int click_count;
+
+    bool has_focus;
 }
 state;
 
@@ -194,7 +196,7 @@ static int f_set_window_mode(lua_State *L) {
 
 
 static int f_window_has_focus(lua_State* L) {
-    (void)L;
+    lua_pushboolean(L, state.has_focus);
     return 1;
 }
 
@@ -326,6 +328,14 @@ static int f_poll_event(lua_State* L) {
         lua_pushstring(L, "mousewheel");
         lua_pushnumber(L, e.scroll_y);
         return 2;
+    case SAPP_EVENTTYPE_FOCUSED:
+        state.has_focus = true;
+        lua_pushstring(L, "focused");
+        return 1;
+    case SAPP_EVENTTYPE_UNFOCUSED:
+        state.has_focus = false;
+        lua_pushstring(L, "unfocused");
+        return 1;
     default:
         return 0;
     }
@@ -409,6 +419,7 @@ static int f_exec(lua_State* L) {
     free(buf);
     return 0;
 }
+
 
 static const luaL_Reg lib[] = {
     {"poll_event", f_poll_event},

@@ -363,20 +363,21 @@ function core.step()
   local did_keymap = false
   local mouse_moved = false
   local mouse = { x = 0, y = 0, dx = 0, dy = 0 }
-  
-  -- @note(ellora): Allways redraw
-  core.redraw = true
 
   for type, a,b,c,d in system.poll_event do
-    if type == "mousemoved" then
-      mouse_moved = true
-      mouse.x, mouse.y = a, b
-      mouse.dx, mouse.dy = mouse.dx + c, mouse.dy + d
-    elseif type == "textinput" and did_keymap then
-      did_keymap = false
-    else
-      local _, res = core.try(core.on_event, type, a, b, c, d)
-      did_keymap = res or did_keymap
+    -- Only process events if focused
+    if system.window_has_focus() then
+      if type == "mousemoved" then
+        mouse_moved = true
+        mouse.x, mouse.y = a, b
+        mouse.dx, mouse.dy = mouse.dx + c, mouse.dy + d
+      elseif type == "textinput" and did_keymap then
+        did_keymap = false
+      else
+        local _, res = core.try(core.on_event, type, a, b, c, d)
+        did_keymap = res or did_keymap
+      end
+      core.redraw = true
     end
   end
   if mouse_moved then
@@ -451,16 +452,11 @@ end)
 
 
 function core.run()
-  -- while true do
     core.frame_start = system.get_time()
-    local did_redraw = core.step()
+    core.step()
     run_threads()
-    -- if not did_redraw and not system.window_has_focus() then
-    --   system.wait_event(0.25)
-    -- end
     local elapsed = system.get_time() - core.frame_start
     system.sleep(math.max(0, 1 / config.fps - elapsed))
-  -- end
 end
 
 
