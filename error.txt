@@ -1,0 +1,9 @@
+Error: error loading module 'core.rootview' from file '/home/lucas/pedro/tsunade/data/core/rootview.lua':
+	/home/lucas/pedro/tsunade/data/core/rootview.lua:12: syntax error near 'function'
+stack traceback:
+	[C]: in ?
+	[C]: in function 'require'
+	/home/lucas/pedro/tsunade/data/core/init.lua:80: in function 'init'
+	[string "local core..."]:9: in function <[string "local core..."]:2>
+	[C]: in function 'xpcall'
+	[string "local core..."]:2: in main chunk

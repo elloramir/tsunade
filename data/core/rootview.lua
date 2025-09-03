@@ -9,25 +9,41 @@ local DocView = require "core.docview"
 
 local EmptyView = View:extend()
 
+local pink = { 255, 150, 150, 255 };
+
 local function draw_text(x, y, color)
-  local th = style.big_font:get_height()
-  local dh = th + style.padding.y * 2
-  x = renderer.draw_text(style.big_font, "lite", x, y + (dh - th) / 2, color)
-  x = x + style.padding.x
-  renderer.draw_rect(x, y, math.ceil(1 * SCALE), dh, color)
-  local lines = {
-    { fmt = "%s to run a command", cmd = "core:find-command" },
-    { fmt = "%s to open a file from the project", cmd = "core:find-file" },
-  }
-  th = style.font:get_height()
-  y = y + (dh - th * 2 - style.padding.y) / 2
-  local w = 0
-  for _, line in ipairs(lines) do
-    local text = string.format(line.fmt, keymap.get_binding(line.cmd))
-    w = math.max(w, renderer.draw_text(style.font, text, x + style.padding.x, y, color))
-    y = y + th + style.padding.y
-  end
-  return w, dh
+    -- Texts and icon
+    local icon = "C"
+    local small_text = "Welcome to"
+    local big_text = "Tsunade"
+
+    -- Heights and padding
+    local small_h = style.font:get_height()
+    local big_h = style.big_font:get_height()
+    local padding_y = style.padding.y
+    local dh = big_h + padding_y * 2
+
+    -- Text widths
+    local small_w = style.font:get_width(small_text)
+    local big_w = style.big_font:get_width(big_text)
+    local w = math.max(small_w, big_w)
+
+    -- Centered positions
+    local small_x = x + (w - small_w) / 2
+    local small_y = y + (dh - small_h) / 2 - small_h - 5
+    local big_x = x + (w - big_w) / 2
+    local big_y = y + (dh - big_h) / 2
+
+    -- Icon position
+    local icon_x = x - style.big_icon_font:get_width(icon) - 5
+    local icon_y = y + 8
+
+    -- Draw
+    renderer.draw_text(style.font, small_text, small_x, small_y, color)
+    renderer.draw_text(style.big_icon_font, icon, icon_x, icon_y, pink)
+    renderer.draw_text(style.big_font, big_text, big_x, big_y, pink)
+
+    return w, dh
 end
 
 function EmptyView:draw()

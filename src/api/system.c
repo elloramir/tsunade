@@ -184,10 +184,11 @@ static int f_set_window_title(lua_State* L) {
     return 0;
 }
 
-static int f_set_window_mode(lua_State* L) {
+static int f_set_window_mode(lua_State *L) {
     (void)L;
     return 0;
 }
+
 
 static int f_window_has_focus(lua_State* L) {
     (void)L;
@@ -205,7 +206,7 @@ static int f_show_confirm_dialog(lua_State *L) {
     char command[1024];
     snprintf(command, sizeof(command), "zenity --question --title=\"%s\" --text=\"%s\" --no-wrap", title, msg);
     int result = system(command);
-    lua_pushboolean(L, result == 0); // zenity returns 0 for "Yes"
+    lua_pushboolean(L, result == 0);
 #endif
 
     return 1;
