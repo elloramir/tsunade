@@ -151,6 +151,9 @@ static char* key_name(char* dst, int sym) {
         sprintf(dst, "%c", 'a' + (sym - SAPP_KEYCODE_A));
         break;
 
+    case SAPP_KEYCODE_MINUS: strcpy(dst, "-"); break;
+    case SAPP_KEYCODE_EQUAL: strcpy(dst, "="); break;
+
     default:
         sprintf(dst, "?(%d)", sym);
         break;

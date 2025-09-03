@@ -38,7 +38,7 @@ static void init(void) {
     lua_pushstring(state.L, "Windows");
     lua_setglobal(state.L, "PLATFORM");
 
-    lua_pushnumber(state.L, 1.5);
+    lua_pushnumber(state.L, 1);
     lua_setglobal(state.L, "SCALE");
 
     lua_pushstring(state.L, "/home/lucas/pedro/tsunade/tsunade");
