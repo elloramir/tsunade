@@ -6,6 +6,7 @@
 #define RENDERER_H
 
 #include <sokol_gfx.h>
+#include <sokol_gl.h>
 #include <fontstash.h>
 
 typedef struct { uint8_t b, g, r, a; } RenColor;

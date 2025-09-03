@@ -20,13 +20,11 @@
 #include <windows.h>
 #endif
 
-static struct
-{
+static struct {
     int argc;
     char **argv;
     lua_State *L;
-}
-state;
+} state;
 
 static void get_exe_filename(char *buf, int sz) {
 #if _WIN32
@@ -52,58 +50,28 @@ static void init(void) {
     luaL_openlibs(state.L);
     api_load_libs(state.L);
 
-    // Pass command-line arguments to the Lua state.
-    lua_newtable(state.L);
-    for (int i = 0; i < state.argc; i++) {
-        lua_pushstring(state.L, state.argv[i]);
-        lua_rawseti(state.L, -2, i + 1);
-    }
-    lua_setglobal(state.L, "ARGS");
+    char exe_filename[1024];
+    get_exe_filename(exe_filename, sizeof(exe_filename));
 
-    // Define global variables in the Lua state.
-    lua_pushstring(state.L, "1.11");
-    lua_setglobal(state.L, "VERSION");
-
-    lua_pushstring(state.L, "Windows");
-    lua_setglobal(state.L, "PLATFORM");
-
-    lua_pushnumber(state.L, 1);
-    lua_setglobal(state.L, "SCALE");
-
-    char exe_buffer[1024];
-    get_exe_filename(exe_buffer, sizeof(exe_buffer));
-    lua_pushstring(state.L, exe_buffer);
-    lua_setglobal(state.L, "EXEFILE");
-
-    // Execute the Lua initialization script.
-    (void)luaL_dostring(state.L,
-        "local core\n"
-        "xpcall(function()\n"
-        "  SCALE = tonumber(os.getenv(\"LITE_SCALE\")) or SCALE\n"
-        "  PATHSEP = package.config:sub(1, 1)\n"
-        "  EXEDIR = EXEFILE:match(\"^(.+)[/\\\\].*$\")\n"
-        "  package.path = EXEDIR .. '/data/?.lua;' .. package.path\n"
-        "  package.path = EXEDIR .. '/data/?/init.lua;' .. package.path\n"
-        "  core = require('core')\n"
-        "  core.init()\n"
-        "end, function(err)\n"
-        "  print('Error: ' .. tostring(err))\n"
-        "  print(debug.traceback(nil, 2))\n"
-        "  if core and core.on_error then\n"
-        "    pcall(core.on_error, err)\n"
-        "  end\n"
-        "  os.exit(1)\n"
-        "end)");
+    LUA_SETUP_GLOBALS(state.L, state.argc, state.argv, "1.11", exe_filename);
+    LUA_INIT_CORE(state.L);
 }
 
 static void frame(void) {
-    (void)luaL_dostring(state.L, "require('core').run()");
+    LUA_CALL_MODULE_FUNC(state.L, "core", "run");
 }
 
 static void cleanup(void) {
-    // @todo(ellora): Investigate why this event was not trigged from the event queue
-    (void)luaL_dostring(state.L, "require('core').quit()");
-    lua_close(state.L);
+    LUA_CALL_MODULE_FUNC(state.L, "core", "quit");
+    
+    if (state.L) {
+        lua_close(state.L);
+        state.L = NULL;
+    }
+    
+    sfons_destroy();
+    sgl_shutdown();
+    sg_shutdown();
 }
 
 static void event(const sapp_event* e) {
