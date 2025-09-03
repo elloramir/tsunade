@@ -17,6 +17,8 @@ local function draw_text(x, y, color)
     local small_text = "Welcome to"
     local big_text = "Tsunade"
 
+    pink[4] = color[4]
+
     -- Heights and padding
     local small_h = style.font:get_height()
     local big_h = style.big_font:get_height()
@@ -397,6 +399,7 @@ local RootView = View:extend()
 
 function RootView:new()
   RootView.super.new(self)
+  self.is_main_view = true;
   self.root_node = Node()
   self.deferred_draws = {}
   self.mouse = { x = 0, y = 0 }
