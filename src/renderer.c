@@ -23,6 +23,7 @@ static struct
     FONScontext* fs;
     sg_pass_action pass_action;
     sg_sampler sampler;
+    sgl_pipeline pip;
 }
 state;
 
@@ -51,6 +52,22 @@ void ren_init(void) {
     state.pass_action = (sg_pass_action) {
         .colors[0] = { .load_action = SG_LOADACTION_CLEAR, .clear_value = {0.0f, 0.0f, 0.0f, 1.0f} }
     };
+
+    // Enable blend (alpha colors)
+    state.pip = sgl_make_pipeline(&(sg_pipeline_desc){
+        .colors[0] = {
+            .blend = {
+                .enabled = true,
+                .src_factor_rgb = SG_BLENDFACTOR_ONE,
+                .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                .op_rgb = SG_BLENDOP_ADD,
+                .src_factor_alpha = SG_BLENDFACTOR_ONE,
+                .dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                .op_alpha = SG_BLENDOP_ADD
+            }
+        },
+        .label = "pipeline-with-blending"
+    });
 }
 
 void ren_shutdown(void) {
@@ -67,9 +84,12 @@ void ren_begin_frame(void) {
     sgl_defaults();
     sgl_matrix_mode_projection();
     sgl_ortho(0.0f, (float)w, (float)h, 0.0f, -1.0f, 1.0f);
+    sgl_push_pipeline();
+    sgl_load_pipeline(state.pip);
 }
 
 void ren_end_frame(void) {
+    sgl_pop_pipeline();
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     sgl_draw();
     sfons_flush(state.fs);

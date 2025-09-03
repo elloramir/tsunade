@@ -39,6 +39,12 @@ function CommandView:new()
   self.font = "font"
   self.size.y = 0
   self.label = ""
+  
+  -- New properties for centered display
+  self.modal_width = 600  -- Fixed width for the modal
+  self.modal_height = 400 -- Maximum height for the modal
+  self.input_height = 0   -- Height of the input area
+  self.show_backdrop = false
 end
 
 
@@ -47,11 +53,36 @@ function CommandView:get_name()
 end
 
 
+function CommandView:get_modal_rect()
+  local root_w, root_h = core.root_view.size.x, core.root_view.size.y
+  local w = math.min(self.modal_width, root_w - 40)
+  local total_h = self.input_height + self.suggestions_height
+  local h = math.min(total_h, self.modal_height)
+  local x = (root_w - w) / 2
+  local y = (root_h - h) / 2 - 50  -- Slightly above center
+  
+  return x, y, w, h
+end
+
+
+function CommandView:get_input_rect()
+  local mx, my, mw, mh = self:get_modal_rect()
+  return mx, my, mw, self.input_height
+end
+
+
+function CommandView:get_suggestions_rect()
+  local mx, my, mw, mh = self:get_modal_rect()
+  local suggestions_h = math.min(self.suggestions_height, mh - self.input_height)
+  return mx, my + self.input_height, mw, suggestions_h
+end
+
+
 function CommandView:get_line_screen_position()
-  local x = CommandView.super.get_line_screen_position(self, 1)
-  local _, y = self:get_content_offset()
-  local lh = self:get_line_height()
-  return x, y + (self.size.y - lh) / 2
+  local x, y, w, h = self:get_input_rect()
+  local font = self:get_font()
+  local label_w = font:get_width(self.label)
+  return x + style.padding.x + label_w, y + (h - font:get_height()) / 2
 end
 
 
@@ -116,6 +147,7 @@ function CommandView:enter(text, submit, suggest, cancel)
   self:update_suggestions()
   self.gutter_text_brightness = 100
   self.label = text .. ": "
+  self.show_backdrop = true
 end
 
 
@@ -127,12 +159,13 @@ function CommandView:exit(submitted, inexplicit)
   self.state = default_state
   self.doc:reset()
   self.suggestions = {}
+  self.show_backdrop = false
   if not submitted then cancel(not inexplicit) end
 end
 
 
 function CommandView:get_gutter_width()
-  return self.gutter_width
+  return 0  -- No gutter in centered mode
 end
 
 
@@ -174,29 +207,21 @@ function CommandView:update()
   -- update gutter text color brightness
   self:move_towards("gutter_text_brightness", 0, 0.1)
 
-  -- update gutter width
-  local dest = self:get_font():get_width(self.label) + style.padding.x
-  if self.size.y <= 0 then
-    self.gutter_width = dest
-  else
-    self:move_towards("gutter_width", dest)
+  -- update input height
+  local dest_input_h = 0
+  if self.state ~= default_state then
+    dest_input_h = self:get_font():get_height() + style.padding.y * 2
   end
+  self:move_towards("input_height", dest_input_h)
 
   -- update suggestions box height
   local lh = self:get_suggestion_line_height()
-  local dest = #self.suggestions * lh
-  self:move_towards("suggestions_height", dest)
+  local dest_suggestions_h = #self.suggestions * lh
+  self:move_towards("suggestions_height", dest_suggestions_h)
 
   -- update suggestion cursor offset
-  local dest = self.suggestion_idx * self:get_suggestion_line_height()
+  local dest = (self.suggestion_idx - 1) * self:get_suggestion_line_height()
   self:move_towards("selection_offset", dest)
-
-  -- update size based on whether this is the active_view
-  local dest = 0
-  if self == core.active_view then
-    dest = style.font:get_height() + style.padding.y * 2
-  end
-  self:move_towards(self.size, "y", dest)
 end
 
 
@@ -206,41 +231,94 @@ end
 
 
 function CommandView:draw_line_gutter(idx, x, y)
-  local yoffset = self:get_line_text_y_offset()
-  local pos = self.position
-  local color = common.lerp(style.text, style.accent, self.gutter_text_brightness / 100)
-  core.push_clip_rect(pos.x, pos.y, self:get_gutter_width(), self.size.y)
-  x = x + style.padding.x
-  renderer.draw_text(self:get_font(), self.label, x, y + yoffset, color)
-  core.pop_clip_rect()
+  -- no-op function - we don't use gutter in centered mode
 end
 
 
-local function draw_suggestions_box(self)
-  local lh = self:get_suggestion_line_height()
-  local dh = style.divider_size
-  local x, _ = self:get_line_screen_position()
-  local h = math.ceil(self.suggestions_height)
-  local rx, ry, rw, rh = self.position.x, self.position.y - h - dh, self.size.x, h
+-- Simplified draw_rect for straight rectangles
+local function draw_rect_simple(x, y, w, h, color)
+  renderer.draw_rect(x, y, w, h, color)
+end
 
-  -- draw suggestions background
-  if #self.suggestions > 0 then
-    renderer.draw_rect(rx, ry, rw, rh, style.background3)
-    renderer.draw_rect(rx, ry - dh, rw, dh, style.divider)
-    local y = self.position.y - self.selection_offset - dh
-    renderer.draw_rect(rx, y, rw, lh, style.line_highlight)
+
+local function draw_backdrop(self)
+  if not self.show_backdrop then return end
+  
+  local root_w, root_h = core.root_view.size.x, core.root_view.size.y
+  local backdrop_color = { 0, 0, 0, 100 }  -- Semi-transparent black
+  renderer.draw_rect(0, 0, root_w, root_h, backdrop_color)
+end
+
+
+local function draw_input_area(self)
+  if self.input_height <= 0 then return end
+  
+  local x, y, w, h = self:get_input_rect()
+  
+  -- Draw input background (retângulo reto)
+  draw_rect_simple(x, y, w, h, style.background2)
+  
+  -- Draw input border
+  local border_color = style.accent
+  renderer.draw_rect(x, y, w, 1, border_color)
+  renderer.draw_rect(x, y + h - 1, w, 1, border_color)
+  renderer.draw_rect(x, y, 1, h, border_color)
+  renderer.draw_rect(x + w - 1, y, 1, h, border_color)
+  
+  -- Draw label and input text
+  local font = self:get_font()
+  local text_y = y + (h - font:get_height()) / 2
+  local label_x = x + style.padding.x
+  
+  -- Draw label
+  renderer.draw_text(font, self.label, label_x, text_y, style.accent)
+  
+  -- Draw input text and cursor
+  local input_x = label_x + font:get_width(self.label)
+  local input_text = self:get_text()
+  renderer.draw_text(font, input_text, input_x, text_y, style.text)
+  
+  -- Draw cursor
+  if core.active_view == self then
+    local cursor_x = input_x + font:get_width(input_text)
+    renderer.draw_rect(cursor_x, text_y, style.caret_width, font:get_height(), style.caret)
   end
+end
 
-  -- draw suggestion text
-  core.push_clip_rect(rx, ry, rw, rh)
+
+local function draw_suggestions_area(self)
+  if #self.suggestions == 0 then return end
+  
+  local sx, sy, sw, sh = self:get_suggestions_rect()
+  local lh = self:get_suggestion_line_height()
+  
+  -- Draw suggestions background (retângulo reto)
+  draw_rect_simple(sx, sy, sw, sh, style.background3)
+  
+  -- Draw separator line
+  renderer.draw_rect(sx, sy, sw, 1, style.divider)
+  
+  -- Draw selection highlight
+  local highlight_y = sy + self.selection_offset
+  if highlight_y >= sy and highlight_y + lh <= sy + sh then
+    renderer.draw_rect(sx, highlight_y, sw, lh, style.line_highlight)
+  end
+  
+  -- Draw suggestions
+  core.push_clip_rect(sx, sy, sw, sh)
   for i, item in ipairs(self.suggestions) do
-    local color = (i == self.suggestion_idx) and style.accent or style.text
-    local y = self.position.y - i * lh - dh
-    common.draw_text(self:get_font(), color, item.text, nil, x, y, 0, lh)
-
-    if item.info then
-      local w = self.size.x - x - style.padding.x
-      common.draw_text(self:get_font(), style.dim, item.info, "right", x, y, w, lh)
+    local item_y = sy + (i - 1) * lh
+    if item_y >= sy - lh and item_y <= sy + sh then
+      local color = (i == self.suggestion_idx) and style.accent or style.text
+      local text_x = sx + style.padding.x
+      local text_y = item_y + (lh - self:get_font():get_height()) / 2
+      
+      renderer.draw_text(self:get_font(), item.text, text_x, text_y, color)
+      
+      if item.info then
+        local info_w = sw - text_x - style.padding.x
+        common.draw_text(self:get_font(), style.dim, item.info, "right", text_x, text_y, info_w, lh)
+      end
     end
   end
   core.pop_clip_rect()
@@ -248,8 +326,14 @@ end
 
 
 function CommandView:draw()
-  CommandView.super.draw(self)
-  core.root_view:defer_draw(draw_suggestions_box, self)
+  if self.state == default_state then return end
+  
+  -- Use defer_draw to ensure we draw on top of everything
+  core.root_view:defer_draw(function()
+    draw_backdrop(self)
+    draw_input_area(self)
+    draw_suggestions_area(self)
+  end)
 end
 
 

@@ -21,10 +21,10 @@ command.add(has_commandview, {
   end,
 
   ["command:select-previous"] = function()
-    core.active_view:move_suggestion_idx(1)
+    core.active_view:move_suggestion_idx(-1)
   end,
 
   ["command:select-next"] = function()
-    core.active_view:move_suggestion_idx(-1)
+    core.active_view:move_suggestion_idx(1)
   end,
 })

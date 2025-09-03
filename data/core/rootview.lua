@@ -399,7 +399,6 @@ local RootView = View:extend()
 
 function RootView:new()
   RootView.super.new(self)
-  self.is_main_view = true;
   self.root_node = Node()
   self.deferred_draws = {}
   self.mouse = { x = 0, y = 0 }
