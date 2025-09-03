@@ -68,7 +68,7 @@ static void init(void) {
     lua_pushstring(state.L, "Windows");
     lua_setglobal(state.L, "PLATFORM");
 
-    lua_pushnumber(state.L, 1);
+    lua_pushnumber(state.L, 1.5);
     lua_setglobal(state.L, "SCALE");
 
     char exe_buffer[1024];
@@ -120,8 +120,8 @@ sapp_desc sokol_main(int param_argc, char* param_argv[]) {
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = event,
-        .width = 800,
-        .height = 600,
+        .width = 960,
+        .height = 640,
         .window_title = "AKI text editor",
         .logger.func = slog_func,
     };

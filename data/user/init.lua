@@ -4,7 +4,6 @@ local style = require "core.style"
 
 require "user.colors.fall"
 
-config.scale = 1.5
 config.draw_whitespace = true
 
 keymap.add { ["ctrl+escape"] = "core:quit" }
