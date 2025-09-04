@@ -30,7 +30,9 @@ static struct
     float last_click_y;
     sapp_mousebutton last_click_button;
     int click_count;
-
+    
+    int last_width;
+    int last_height;
     bool has_focus;
 }
 state;
@@ -283,14 +285,14 @@ static int f_poll_event(lua_State* L) {
         // @note(ellora): Sokol does not have maximized event, so we
         // need to do that for now \_(ツ)_/
         {
-            static int last_width = 0;
-            static int last_height = 0;
             int width = sapp_width();
             int height = sapp_height();
-            if (width != last_width || height != last_height) {
+            if (width != state.last_width || height != state.last_height) {
                 lua_pushstring(L, "maximized");
                 lua_pushnumber(L, width);
                 lua_pushnumber(L, height);
+                state.last_width = width;
+                state.last_height = height;
                 return 3;
             }
         }
