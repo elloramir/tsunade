@@ -368,19 +368,17 @@ function core.step()
 
   for type, a,b,c,d in system.poll_event do
     -- Only process events if focused
-    if system.window_has_focus() then
-      if type == "mousemoved" then
-        mouse_moved = true
-        mouse.x, mouse.y = a, b
-        mouse.dx, mouse.dy = mouse.dx + c, mouse.dy + d
-      elseif type == "textinput" and did_keymap then
-        did_keymap = false
-      else
-        local _, res = core.try(core.on_event, type, a, b, c, d)
-        did_keymap = res or did_keymap
-      end
-      core.redraw = true
+    if type == "mousemoved" then
+      mouse_moved = true
+      mouse.x, mouse.y = a, b
+      mouse.dx, mouse.dy = mouse.dx + c, mouse.dy + d
+    elseif type == "textinput" and did_keymap then
+      did_keymap = false
+    else
+      local _, res = core.try(core.on_event, type, a, b, c, d)
+      did_keymap = res or did_keymap
     end
+    core.redraw = true
   end
   if mouse_moved then
     core.try(core.on_event, "mousemoved", mouse.x, mouse.y, mouse.dx, mouse.dy)

@@ -280,6 +280,21 @@ static int f_poll_event(lua_State* L) {
     char buf[16];
 
     if (!dequeue_event(&e)) {
+        // @note(ellora): Sokol does not have maximized event, so we
+        // need to do that for now \_(ツ)_/
+        {
+            static int last_width = 0;
+            static int last_height = 0;
+            int width = sapp_width();
+            int height = sapp_height();
+            if (width != last_width || height != last_height) {
+                lua_pushstring(L, "maximized");
+                lua_pushnumber(L, width);
+                lua_pushnumber(L, height);
+                return 3;
+            }
+        }
+
         return 0;
     }
 
