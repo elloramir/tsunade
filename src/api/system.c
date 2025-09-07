@@ -290,8 +290,6 @@ static int f_poll_event(lua_State* L) {
     }
 
     switch (e.type) {
-
-    // --- Window / System ---
     case SAPP_EVENTTYPE_QUIT_REQUESTED:
         lua_pushstring(L, "quit");
         return 1;
@@ -308,7 +306,7 @@ static int f_poll_event(lua_State* L) {
         return 1;
 
     case SAPP_EVENTTYPE_UNFOCUSED: {
-        // @todo(ellora): That is not the ideal, but...
+        // @TODO(ellora): That is not the ideal, but...
         // Fix stuck modifier keys (alt/ctrl/shift) when losing focus
         sapp_event fake;
         memset(&fake, 0, sizeof(fake));
@@ -340,8 +338,7 @@ static int f_poll_event(lua_State* L) {
         return 2;
 
     case SAPP_EVENTTYPE_CHAR: {
-        // MELHORADO: Suporte adequado para UTF-8
-        char utf8_buffer[5] = {0}; // 4 bytes para UTF-8 + null terminator
+        char utf8_buffer[5] = {0};
         int bytes_written = utf8_encode(e.char_code, utf8_buffer);
         
         if (bytes_written > 0) {
@@ -349,7 +346,7 @@ static int f_poll_event(lua_State* L) {
             lua_pushlstring(L, utf8_buffer, bytes_written);
             return 2;
         }
-        return 0; // Se falhou a codificação, não retorna evento
+        return 0;
     }
 
     case SAPP_EVENTTYPE_MOUSE_DOWN: {
