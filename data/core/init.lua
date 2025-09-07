@@ -127,7 +127,7 @@ end
 
 
 local temp_uid = (system.get_time() * 1000) % 0xffffffff
-local temp_file_prefix = string.format(".lite_temp_%08x", temp_uid)
+local temp_file_prefix = string.format(".tsunde_temp_%08x", temp_uid)
 local temp_file_counter = 0
 
 local function delete_temp_files()
@@ -189,7 +189,7 @@ end
 
 
 function core.load_project_module()
-  local filename = ".lite_project.lua"
+  local filename = ".tsunade.lua"
   if system.get_file_info(filename) then
     return core.try(function()
       local fn, err = loadfile(filename)

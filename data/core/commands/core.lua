@@ -89,7 +89,7 @@ command.add(nil, {
   end,
 
   ["core:open-project-module"] = function()
-    local filename = ".lite_project.lua"
+    local filename = ".tsunade.lua"
     if system.get_file_info(filename) then
       core.root_view:open_doc(core.open_doc(filename))
     else

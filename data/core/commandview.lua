@@ -297,7 +297,7 @@ local function draw_suggestions_area(self)
   local sx, sy, sw, sh = self:get_suggestions_rect()
   local lh = self:get_suggestion_line_height()
   
-  -- Draw suggestions background (retângulo reto)
+  -- Draw suggestions background
   draw_rect_simple(sx, sy, sw, sh, style.background3)
   
   -- Draw separator line
@@ -321,8 +321,10 @@ local function draw_suggestions_area(self)
       renderer.draw_text(self:get_font(), item.text, text_x, text_y, color)
       
       if item.info then
-        local info_w = sw - text_x - style.padding.x
-        common.draw_text(self:get_font(), style.dim, item.info, "right", text_x, text_y, info_w, lh)
+        local available_width = sw - (2 * style.padding.x)
+        local info_x = sx + style.padding.x
+        
+        common.draw_text(self:get_font(), style.dim, item.info, "right", info_x, text_y, available_width, self:get_font():get_height())
       end
     end
   end
