@@ -365,7 +365,7 @@ function core.step()
   local mouse_moved = false
   local mouse = { x = 0, y = 0, dx = 0, dy = 0 }
 
-  core.redraw = true
+  core.redraw = system.window_has_focus()
 
   for type, a,b,c,d in system.poll_event do
     -- Only process events if focused

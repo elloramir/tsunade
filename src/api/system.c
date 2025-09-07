@@ -37,7 +37,14 @@ static struct
     int last_height;
     bool has_focus;
 }
-state;
+state = {
+#ifdef _WIN32
+    // On windows we need to set focus as default
+    // true, because the focused is not trigged on the
+    // start of the program.
+    .has_focus = true,
+#endif
+};
 
 static double time_now(void) {
     return (double)clock() / (double)CLOCKS_PER_SEC;
@@ -306,6 +313,8 @@ static int f_poll_event(lua_State* L) {
         return 1;
 
     case SAPP_EVENTTYPE_UNFOCUSED: {
+        state.has_focus = false;
+
         // @TODO(ellora): That is not the ideal, but...
         // Fix stuck modifier keys (alt/ctrl/shift) when losing focus
         sapp_event fake;
