@@ -10,12 +10,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "api.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #define realpath(x, y) _fullpath(y, x, MAX_PATH)
 #endif
+
+#include "api.h"
+#include "uftf8.h"
 
 #define MAX_EVENTS 128
 
@@ -196,26 +198,13 @@ static int f_set_window_mode(lua_State *L) {
     return 0;
 }
 
-
 static int f_window_has_focus(lua_State* L) {
     lua_pushboolean(L, state.has_focus);
     return 1;
 }
 
 static int f_show_confirm_dialog(lua_State *L) {
-    const char *title = luaL_checkstring(L, 1);
-    const char *msg = luaL_checkstring(L, 2);
-
-#if _WIN32
-    int id = MessageBox(0, msg, title, MB_YESNO | MB_ICONWARNING);
-    lua_pushboolean(L, id == IDYES);
-#else
-    char command[1024];
-    snprintf(command, sizeof(command), "zenity --question --title=\"%s\" --text=\"%s\" --no-wrap", title, msg);
-    int result = system(command);
-    lua_pushboolean(L, result == 0);
-#endif
-
+    (void)L;
     return 1;
 }
 
@@ -350,10 +339,18 @@ static int f_poll_event(lua_State* L) {
         lua_pushstring(L, key_name(buf, e.key_code));
         return 2;
 
-    case SAPP_EVENTTYPE_CHAR:
-        lua_pushstring(L, "textinput");
-        lua_pushfstring(L, "%c", (char)e.char_code);
-        return 2;
+    case SAPP_EVENTTYPE_CHAR: {
+        // MELHORADO: Suporte adequado para UTF-8
+        char utf8_buffer[5] = {0}; // 4 bytes para UTF-8 + null terminator
+        int bytes_written = utf8_encode(e.char_code, utf8_buffer);
+        
+        if (bytes_written > 0) {
+            lua_pushstring(L, "textinput");
+            lua_pushlstring(L, utf8_buffer, bytes_written);
+            return 2;
+        }
+        return 0; // Se falhou a codificação, não retorna evento
+    }
 
     case SAPP_EVENTTYPE_MOUSE_DOWN: {
         int clicks = get_click_count(&e);
@@ -429,6 +426,7 @@ static int f_set_clipboard(lua_State* L) {
     return 0;
 }
 
+// @TODO(ellora): Support utf8 instead?
 static int f_fuzzy_match(lua_State* L) {
     const char* str = luaL_checkstring(L, 1);
     const char* ptn = luaL_checkstring(L, 2);
@@ -468,7 +466,6 @@ static int f_exec(lua_State* L) {
     free(buf);
     return 0;
 }
-
 
 static const luaL_Reg lib[] = {
     {"poll_event", f_poll_event},

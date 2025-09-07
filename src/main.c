@@ -125,5 +125,6 @@ sapp_desc sokol_main(int param_argc, char* param_argv[]) {
         .height = 640,
         .window_title = "AKI text editor",
         .logger.func = slog_func,
+        .swap_interval = true,
     };
 }

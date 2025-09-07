@@ -10,7 +10,8 @@ SRC = \
 OBJ = $(SRC:.c=.o)
 
 ifeq ($(OS),Windows_NT)
-    LDFLAGS = -lgdi32 -lopengl32
+    LDFLAGS = -lgdi32 -ld3d11
+    CFLAGS += -DSOKOL_D3D11
 else
     LDFLAGS = -lGL -lGLU -lX11 -lXi -lXcursor -lm
     CFLAGS += -D_POSIX_C_SOURCE=199309L
