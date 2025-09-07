@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stddef.h>
 #include "uftf8.h"
 
 int utf8_encode(uint32_t codepoint, char* buffer) {

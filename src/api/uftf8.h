@@ -1,7 +1,8 @@
 #ifndef UTF8_H
 #define UTF8_H
 
-#include <inttypes.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 int utf8_encode(uint32_t codepoint, char* buffer);

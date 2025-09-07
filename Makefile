@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -DGL_DEBUG
+CFLAGS = -std=c99 -Wall -Wextra
 CFLAGS += -Ithird_party
 
 OUT = tsunade

@@ -32,7 +32,7 @@ static struct
     float last_click_y;
     sapp_mousebutton last_click_button;
     int click_count;
-    
+
     int last_width;
     int last_height;
     bool has_focus;
@@ -349,7 +349,7 @@ static int f_poll_event(lua_State* L) {
     case SAPP_EVENTTYPE_CHAR: {
         char utf8_buffer[5] = {0};
         int bytes_written = utf8_encode(e.char_code, utf8_buffer);
-        
+
         if (bytes_written > 0) {
             lua_pushstring(L, "textinput");
             lua_pushlstring(L, utf8_buffer, bytes_written);

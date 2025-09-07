@@ -1,5 +1,6 @@
 *.o
 tsunade
 tsunade.exe
+.tsunade.lua
 error.txt
 .lite*
