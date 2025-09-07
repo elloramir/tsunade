@@ -7,11 +7,11 @@ style.scrollbar_size = common.round(4 * SCALE)
 style.caret_width = common.round(2 * SCALE)
 style.tab_width = common.round(170 * SCALE)
 
-style.font = renderer.font.load(EXEDIR .. "/data/fonts/font.ttf", 24 * SCALE)
+style.font = renderer.font.load(EXEDIR .. "/data/fonts/font.ttf", 20 * SCALE)
 style.big_font = renderer.font.load(EXEDIR .. "/data/fonts/font.ttf", 34 * SCALE)
-style.icon_font = renderer.font.load(EXEDIR .. "/data/fonts/icons.ttf", 24 * SCALE)
+style.icon_font = renderer.font.load(EXEDIR .. "/data/fonts/icons.ttf", 20 * SCALE)
 style.big_icon_font = renderer.font.load(EXEDIR .. "/data/fonts/icons.ttf", 34 * SCALE)
-style.code_font = renderer.font.load(EXEDIR .. "/data/fonts/monospace.ttf", 23.5 * SCALE)
+style.code_font = renderer.font.load(EXEDIR .. "/data/fonts/monospace.ttf", 20 * SCALE)
 
 style.background = { common.color "#2e2e32" }
 style.background2 = { common.color "#252529" }
