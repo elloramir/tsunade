@@ -41,7 +41,7 @@ static void get_exe_filename(char *buf, int sz) {
     unsigned size = sz;
     _NSGetExecutablePath(buf, &size);
 #else
-    strcpy(buf, "./tsunade");
+    strcpy(buf, "./"TSUNADE_EXE);
 #endif
 }
 
@@ -70,10 +70,12 @@ static void init(void) {
     lua_pushnumber(state.L, 1);
     lua_setglobal(state.L, "SCALE");
 
-    char exe_buffer[1024];
-    get_exe_filename(exe_buffer, sizeof(exe_buffer));
-    lua_pushstring(state.L, exe_buffer);
-    lua_setglobal(state.L, "EXEFILE");
+    {
+        char exe_filename[1024];
+        get_exe_filename(exe_filename, sizeof(exe_filename));
+        lua_pushstring(state.L, exe_filename);
+        lua_setglobal(state.L, "EXEFILE");
+    }
 
     // Execute the Lua initialization script.
     (void)luaL_dostring(state.L,

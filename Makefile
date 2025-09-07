@@ -19,6 +19,8 @@ else
     CFLAGS += -DSOKOL_GLCORE
 endif
 
+CFLAGS += -DTSUNADE_EXE=$(OUT)
+
 .PHONY: build, clean
 
 build: $(OBJ)
