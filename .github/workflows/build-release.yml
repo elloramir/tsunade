@@ -1,0 +1,89 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc make
+        sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev libx11-dev libxi-dev libxcursor-dev
+        sudo apt-get install -y gcc-mingw-w64-x86-64 mingw-w64-tools
+    
+    - name: Build Linux version
+      run: |
+        make clean
+        make CC=gcc
+        mkdir -p release-linux
+        cp tsunade release-linux/
+        cp -r data release-linux/
+    
+    - name: Build Windows version
+      run: |
+        make clean
+        make CC=x86_64-w64-mingw32-gcc OS=Windows_NT
+        mkdir -p release-windows
+        cp tsunade.exe release-windows/
+        cp -r data release-windows/
+    
+    - name: Create release packages
+      run: |
+        cd release-linux && zip -r ../tsunade-linux.zip . && cd ..
+        cd release-windows && zip -r ../tsunade-windows.zip . && cd ..
+    
+    - name: Get commit info
+      id: commit
+      run: |
+        echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: release-${{ steps.commit.outputs.timestamp }}-${{ steps.commit.outputs.sha_short }}
+        release_name: Tsunade Release ${{ steps.commit.outputs.timestamp }}
+        body: |
+          Automated release from commit ${{ steps.commit.outputs.sha_short }}
+          
+          **Downloads:**
+          - `tsunade-linux.zip`: Linux build (executable + data folder)
+          - `tsunade-windows.zip`: Windows build (executable + data folder)
+          
+          **Build info:**
+          - Commit: ${{ github.sha }}
+          - Date: ${{ steps.commit.outputs.timestamp }}
+        draft: false
+        prerelease: false
+    
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./tsunade-linux.zip
+        asset_name: tsunade-linux.zip
+        asset_content_type: application/zip
+    
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./tsunade-windows.zip
+        asset_name: tsunade-windows.zip
+        asset_content_type: application/zip
