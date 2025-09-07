@@ -196,5 +196,6 @@ int ren_draw_text(RenFont *font, const char *text, int x, int y, RenColor color)
     fonsSetFont(state.fs, font->font_id);
     fonsSetSize(state.fs, font->size);
     fonsSetColor(state.fs, sfons_rgba(color.r, color.g, color.b, color.a));
+
     return (int)fonsDrawText(state.fs, (float)x, (float)y + font->size/1.25, text, NULL);
 }

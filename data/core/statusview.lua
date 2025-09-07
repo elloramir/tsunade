@@ -10,8 +10,8 @@ local View = require "core.view"
 
 local StatusView = View:extend()
 
-StatusView.separator  = "      "
-StatusView.separator2 = "   |   "
+StatusView.separator  = "  "
+StatusView.separator2 = " | "
 
 
 function StatusView:new()
