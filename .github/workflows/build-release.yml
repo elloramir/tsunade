@@ -20,17 +20,6 @@ jobs:
         sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev libx11-dev libxi-dev libxcursor-dev
         sudo apt-get install -y gcc-mingw-w64-x86-64 mingw-w64-tools
     
-    - name: Fix missing includes
-      run: |
-        # Adicionar #include <stddef.h> no header uftf8.h se não existir
-        if ! grep -q "#include <stddef.h>" src/api/uftf8.h 2>/dev/null; then
-          sed -i '1i#include <stddef.h>' src/api/uftf8.h
-        fi
-        # Adicionar #include <stddef.h> no utf8.c se não existir  
-        if ! grep -q "#include <stddef.h>" src/api/utf8.c 2>/dev/null; then
-          sed -i '2i#include <stddef.h>' src/api/utf8.c
-        fi
-    
     - name: Build Linux version
       run: |
         make clean
